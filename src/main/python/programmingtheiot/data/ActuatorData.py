@@ -10,6 +10,8 @@
 import programmingtheiot.common.ConfigConst as ConfigConst
 
 from programmingtheiot.data.BaseIotData import BaseIotData
+from pickle import NONE
+from lib2to3.fixer_util import Comma
 
 class ActuatorData(BaseIotData):
 	"""
@@ -19,32 +21,42 @@ class ActuatorData(BaseIotData):
 
 	def __init__(self, typeID: int = ConfigConst.DEFAULT_ACTUATOR_TYPE, name = ConfigConst.NOT_SET, d = None):
 		super(ActuatorData, self).__init__(name = name, typeID = typeID, d = d)
-		pass
+		
+		self.command = ConfigConst.DEFAULT_COMMAND
+		self.value = ConfigConst.DEFAULT_VAL
+		self.stateData = NONE
+
 	
 	def getCommand(self) -> int:
-		pass
+		return self.command
 	
 	def getStateData(self) -> str:
-		pass
+		return self.stateData
 	
 	def getValue(self) -> float:
-		pass
+		return self.value
 	
 	def isResponseFlagEnabled(self) -> bool:
 		return False
 	
 	def setCommand(self, command: int):
-		pass
+		self.command = command
 	
 	def setAsResponse(self):
 		pass
 		
 	def setStateData(self, stateData: str):
-		pass
+		self.stateData = stateData
 	
 	def setValue(self, val: float):
-		pass
+		self.value = val
+		self.updateTimeStamp()
 		
 	def _handleUpdateData(self, data):
-		pass
-		
+		if data and isinstance(data, ActuatorData):
+			self.value = data.getValue()
+			self.command = data.getCommand()
+			self.stateData = data.getStateData()
+	
+	def __str__(self):
+		return BaseIotData.__str__(self) + ",value=" + str(self.value)

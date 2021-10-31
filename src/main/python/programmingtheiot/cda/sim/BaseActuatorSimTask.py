@@ -21,7 +21,12 @@ class BaseActuatorSimTask():
 	"""
 
 	def __init__(self, name = ConfigConst.NOT_SET, typeID: int = ConfigConst.DEFAULT_ACTUATOR_TYPE, simpleName: str = "Actuator"):
-		pass
+		self.name = name
+		self.typeID = typeID
+		self.simpleName = simpleName
+		
+		self.lastKnownCommand = ConfigConst.DEFAULT_COMMAND
+		self.lastKnownValue = ConfigConst.DEFAULT_VAL
 		
 	def getLatestActuatorResponse(self) -> ActuatorData:
 		"""
@@ -30,7 +35,7 @@ class BaseActuatorSimTask():
 		pass
 	
 	def getSimpleName(self) -> str:
-		pass
+		return self.simpleName
 	
 	def updateActuator(self, data: ActuatorData) -> bool:
 		"""
@@ -42,7 +47,34 @@ class BaseActuatorSimTask():
 		Both of these methods will have a generic implementation (logging only) within
 		this base class, although the sub-class may override if preferable.
 		"""
-		pass
+		if data and self.typeID == data.getTypeID():
+			statusCode = ConfigConst.DEFAULT_STATUS
+			
+			currentCommand = data.getCommand()
+			currentVal = data.getValue()
+			if currentCommand is self.lastKnownCommand and currentVal == self.lastKnownValue:
+				logging.debug("New actuator command is repeat of current state. Ignoring: %s", str(currentCommand) + ", " + str(currentVal))
+			else:
+				if currentCommand == ConfigConst.COMMAND_ON:
+					logging.info("Activating actuator...")
+					statusCode = self._activateActuator(val = currentVal, stateData = data.getStateData())
+				elif currentCommand == ConfigConst.COMMAND_OFF:
+					logging.info("Deactivating actuator...")
+					statusCode = self._deactivateActuator(val = currentVal, stateData = data.getStateData())
+				else:
+					logging.warning("ActuatorData command is unkonwn. Ignorign: %s", str(currentCommand))
+					statusCode = -1
+			
+			self.lastKnownCommand = currentCommand
+			self.lastKnonwValue = currentVal
+			
+			actuatorResponse = ActuatorData()
+			actuatorResponse.updateData(data)
+			actuatorResponse.setStateData(statusCode)
+			actuatorResponse.setAsResponse()	
+			
+			return actuatorResponse
+		return None
 		
 	def _activateActuator(self, val: float = ConfigConst.DEFAULT_VAL, stateData: str = None) -> int:
 		"""
@@ -51,7 +83,13 @@ class BaseActuatorSimTask():
 		@param val The actuation activation value to process.
 		@param stateData The string state data to use in processing the command.
 		"""
-		pass
+		msg = "\n*******"
+		msg = msg + "\n* O N *"
+		msg = msg + "\n*******"
+		msg = msg + "\n" + self.simpleName + " VALUE -> " + str(val) + "\n======="
+		logging.info("Simulating %s actuator ON: %s", self.name, msg)
+		
+		return 0
 		
 	def _deactivateActuator(self, val: float = ConfigConst.DEFAULT_VAL, stateData: str = None) -> int:
 		"""
@@ -60,5 +98,11 @@ class BaseActuatorSimTask():
 		@param val The actuation activation value to process.
 		@param stateData The string state data to use in processing the command.
 		"""
-		pass
+		msg = "\n*******"
+		msg = msg + "\n* OFF *"
+		msg = msg + "\n*******"
+		msg = msg + "\n" + self.simpleName + " VALUE -> " + str(val) + "\n======="
+		logging.info("Simulating %s actuator OFF: %s", self.name, msg)
+		
+		return 0
 		
