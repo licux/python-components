@@ -52,9 +52,15 @@ class SensorAdapterManager(object):
 
 		if self.useEmulator:
 			logging.info("Use Emulator...")
-			self.tempAdapter = TemperatureSensorSimTask()
-			self.pressureAdapter = PressureSensorSimTask()
-			self.humidityAdapter = HumiditySensorSimTask()
+			tempModule = import_module('programmingtheiot.cda.emulated.TemperatureSensorEmulatorTask', 'TemperatureSensorEmulatorTask')
+			teClazz = getattr(tempModule, 'TemperatureSensorEmulatorTask')
+			self.tempAdapter = teClazz()
+			pressureModule = import_module('programmingtheiot.cda.emulated.PressureSensorEmulatorTask', 'PressureSensorEmulatorTask')
+			prClazz = getattr(pressureModule, 'PressureSensorEmulatorTask')
+			self.pressureAdapter = prClazz()
+			humudityModule = import_module('programmingtheiot.cda.emulated.HumiditySensorEmulatorTask', 'HumiditySensorEmulatorTask')
+			huClazz = getattr(humudityModule, 'HumiditySensorEmulatorTask')
+			self.humidityAdapter = huClazz()
 		elif not self.useEmulator:
 			logging.info("Use Simulator...")
 			

@@ -1,0 +1,9 @@
+# install PyGObject
+sudo apt install libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0
+pip3 install pycairo
+pip3 install PyGObject
+# install Sense-Emu
+sudo add-apt-repository ppa://waveform/ppa
+sudo apt update
+sudo apt install python-sense-emu python3-sense-emu sense-emu-tools
+sudo pip3 install pisense

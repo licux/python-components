@@ -15,6 +15,7 @@ from programmingtheiot.common.ConfigUtil import ConfigUtil
 from programmingtheiot.cda.sim.BaseSensorSimTask import BaseSensorSimTask
 
 from pisense import SenseHAT
+from programmingtheiot.cda.sim.SensorDataGenerator import SensorDataGenerator
 
 class TemperatureSensorEmulatorTask(BaseSensorSimTask):
 	"""
@@ -23,7 +24,19 @@ class TemperatureSensorEmulatorTask(BaseSensorSimTask):
 	"""
 
 	def __init__(self, dataSet = None):
-		pass
+		super(TemperatureSensorEmulatorTask, self).__init__(
+			name = ConfigConst.TEMP_SENSOR_NAME,
+			typeID = ConfigConst.TEMP_SENSOR_TYPE,
+			minVal = SensorDataGenerator.LOW_NORMAL_INDOOR_TEMP,
+			maxVal = SensorDataGenerator.HI_NORMAL_INDOOR_TEMP)
+		
+		useEmulator = ConfigUtil().getBoolean(section = ConfigConst.CONSTRAINED_DEVICE, key = ConfigConst.ENABLE_SENSE_HAT_KEY)
+		self.sh = SenseHAT(emulate = useEmulator)
 	
 	def generateTelemetry(self) -> SensorData:
-		pass
+		sensorData = SensorData(name = self.getName(), typeID = self.getTypeID())
+		sensorVal = self.sh.environ.temperature
+		
+		sensorData.setValue(sensorVal)
+		self.latestSensorData = sensorData
+		return sensorData

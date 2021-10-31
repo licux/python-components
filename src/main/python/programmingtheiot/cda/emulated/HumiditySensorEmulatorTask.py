@@ -15,6 +15,7 @@ from programmingtheiot.common.ConfigUtil import ConfigUtil
 from programmingtheiot.cda.sim.BaseSensorSimTask import BaseSensorSimTask
 
 from pisense import SenseHAT
+from programmingtheiot.cda.sim.SensorDataGenerator import SensorDataGenerator
 
 class HumiditySensorEmulatorTask(BaseSensorSimTask):
 	"""
@@ -23,7 +24,19 @@ class HumiditySensorEmulatorTask(BaseSensorSimTask):
 	"""
 
 	def __init__(self, dataSet = None):
-		pass
+		super(HumiditySensorEmulatorTask, self).__init__(
+			name = ConfigConst.HUMIDITY_SENSOR_NAME,
+			typeID = ConfigConst.HUMIDITY_SENSOR_TYPE,
+			minVal = SensorDataGenerator.LOW_NORMAL_ENV_HUMIDITY,
+			maxVal = SensorDataGenerator.HI_NORMAL_ENV_HUMIDITY)
+		
+		useEmulator = ConfigUtil().getBoolean(section = ConfigConst.CONSTRAINED_DEVICE, key = ConfigConst.ENABLE_SENSE_HAT_KEY)
+		self.sh = SenseHAT(emulate = useEmulator)
 	
 	def generateTelemetry(self) -> SensorData:
-		pass
+		sensorData = SensorData(name = self.getName(), typeID = self.getTypeID())
+		sensorVal = self.sh.environ.humidity
+		
+		sensorData.setValue(sensorVal)
+		self.latestSensorData = sensorData
+		return sensorData
