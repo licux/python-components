@@ -21,6 +21,7 @@ from programmingtheiot.cda.system.SystemMemUtilTask import SystemMemUtilTask
 
 from programmingtheiot.data.SystemPerformanceData import SystemPerformanceData
 from distutils.command.config import config
+from multiprocessing import sys
 
 class SystemPerformanceManager(object):
 	"""
@@ -54,12 +55,23 @@ class SystemPerformanceManager(object):
 		self.dataMsgListener = None
 
 	def handleTelemetry(self):
-		self.cpuUtilPct = self.cpuUtilTask.getTelemetryValue()
-		self.memUtilPct = self.memUtilTask.getTelemetryValue()
-		logging.info("CPU Utilization is %s percent, and memory utilization is %s percent.", str(self.cpuUtilPct), str(self.memUtilPct))
+		cpuUtilPct = self.cpuUtilTask.getTelemetryValue()
+		memUtilPct = self.memUtilTask.getTelemetryValue()
+		logging.debug("CPU Utilization is %s percent, and memory utilization is %s percent.", str(cpuUtilPct), str(memUtilPct))
+		
+		sysPerfData = SystemPerformanceData()
+		sysPerfData.setLocationID(self.locationID)
+		sysPerfData.setCpuUtilization(cpuUtilPct)
+		sysPerfData.setMemoryUtilization(memUtilPct)
+		
+		if self.dataMsgListener:
+			self.dataMsgListener.handleSystemPerformanceMessage(sysPerfData)
 		
 	def setDataMessageListener(self, listener: IDataMessageListener) -> bool:
-		pass
+		if listener:
+			self.dataMsgListener = listener
+			return True
+		return False
 	
 	def startManager(self):
 		logging.info("Started SystemPerformanceManager.")

@@ -52,4 +52,4 @@ class SystemPerformanceData(BaseIotData):
 			self.memUtil = data.getMemoryUtilization()
 			
 	def __str__(self):
-		return BaseIotData.__str__(self) + ",value=" + str(self.value)
+		return BaseIotData.__str__(self) + ",mem util:" + str(self.memUtil) + "%,cpu util:" + str(self.cpuUtil) + "%"
