@@ -6,11 +6,12 @@
 # 
 # Copyright (c) 2020 by Andrew D. King
 # 
-
+import logging
 import programmingtheiot.common.ConfigConst as ConfigConst
 
 from programmingtheiot.common.ResourceNameEnum import ResourceNameEnum
 from programmingtheiot.common.IDataMessageListener import IDataMessageListener
+from asyncio.log import logger
 
 class IPubSubClient():
 	"""
@@ -48,7 +49,7 @@ class IPubSubClient():
 		@param qos The QoS level. This is expected to be 0 - 2. Default is DEFAULT_QOS.
 		@return bool True on success; False otherwise.
 		"""
-		pass
+		logging.info("Called pushlishMessage: resource[" + str(resource) + "], payload[" + payload + "]")
 
 	def subscribeToTopic(self, resource: ResourceNameEnum = None, callback = None, qos: int = ConfigConst.DEFAULT_QOS) -> bool:
 		"""
@@ -64,7 +65,7 @@ class IPubSubClient():
 		@param qos The QoS level. This is expected to be 0 - 2. Default is DEFAULT_QOS.
 		@return bool True on success; False otherwise.
 		"""
-		pass
+		logging.info("Called subscribeToTopic: resource[" + str(resource) + "]")
 
 	def unsubscribeFromTopic(self, resource: ResourceNameEnum = None) -> bool:
 		"""
@@ -85,5 +86,6 @@ class IPubSubClient():
 		messages, such as those received from a subscription event.
 		@return bool True on success (if listener is non-null will always be the case); False otherwise.
 		"""
-		pass
+		logging.info("Called setDataMessageListener.")
+		
 	

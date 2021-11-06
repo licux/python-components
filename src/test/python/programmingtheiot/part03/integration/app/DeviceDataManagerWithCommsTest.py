@@ -53,7 +53,7 @@ class DeviceDataManagerWithCommsTest(unittest.TestCase):
 	def tearDown(self):
 		pass
 
-	@unittest.skip("Ignore for now.")
+	#@unittest.skip("Ignore for now.")
 	def testStartAndStopManagerWithMqtt(self):
 		"""
 		NOTE: Be sure to enable CoAP by setting the following flag to True
@@ -72,6 +72,8 @@ class DeviceDataManagerWithCommsTest(unittest.TestCase):
 		ad.setCommand(1)
 		
 		adJson = DataUtil().actuatorDataToJson(ad)
+		
+		sleep(10)
 		
 		mqttClient.publishMessage(ResourceNameEnum.CDA_ACTUATOR_CMD_RESOURCE, msg = adJson, qos = 1)
 		

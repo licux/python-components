@@ -12,7 +12,7 @@ import paho.mqtt.client as mqttClient
 
 import programmingtheiot.common.ConfigConst as ConfigConst
 
-from programmingtheiot.common import ConfigUtil
+from programmingtheiot.common.ConfigUtil import ConfigUtil
 
 from programmingtheiot.common.IDataMessageListener import IDataMessageListener
 from programmingtheiot.common.ResourceNameEnum import ResourceNameEnum
@@ -37,28 +37,59 @@ class MqttClientConnector(IPubSubClient):
 		the same clientID continuously attempts to re-connect, causing the broker to
 		disconnect the previous instance.
 		"""
-		pass
+		self.config = ConfigUtil()
+		self.dataMsgListener = None
+		
+		self.host = self.config.getProperty(ConfigConst.MQTT_GATEWAY_SERVICE, ConfigConst.HOST_KEY, ConfigConst.DEFAULT_HOST)
+		self.port = self.config.getInteger(ConfigConst.MQTT_GATEWAY_SERVICE, ConfigConst.PORT_KEY, ConfigConst.DEFAULT_MQTT_PORT);
+		self.keepAlive = self.config.getInteger(ConfigConst.MQTT_GATEWAY_SERVICE, ConfigConst.KEEP_ALIVE_KEY, ConfigConst.DEFAULT_KEEP_ALIVE)
+		self.defaultQos = self.config.getInteger(ConfigConst.MQTT_GATEWAY_SERVICE, ConfigConst.DEFAULT_QOS_KEY, ConfigConst.DEFAULT_QOS)
+		
+		self.mqttClient = None
+		# self.clientID = self.config.getProperty(ConfigConst.CONSTRAINED_DEVICE, ConfigConst.DEVICE_LOCATION_ID_KEY, 'CDAMqttClientID001')
+		self.clientID = ""
+		
+		logging.info("\tMQTT Client ID: " + self.clientID)
+		logging.info("\tMQTT Broker Host: " + self.host)
+		logging.info("\tMQTT Broker Port: " + str(self.port))
+		logging.info("\tMQTT Keep Alive: " + str(self.keepAlive))
 
 	def connectClient(self) -> bool:
-		pass
+		if not self.mqttClient:
+			self.mqttClient = mqttClient.Client(client_id = self.clientID, clean_session = True)
+			self.mqttClient.on_connect = self.onConnect
+			self.mqttClient.on_disconnect = self.onDisconnect
+			self.mqttClient.on_message = self.onMessage
+			self.mqttClient.on_public = self.onPublish
+			self.mqttClient.on_subscribe = self.onSubscribe
+			
+		if not self.mqttClient.is_connected():
+			self.mqttClient.connect(self.host, self.port, self.keepAlive)
+			self.mqttClient.loop_start()
+			return True
+		else:
+			logging.warn("MQTT client already connected. Ignoring connect.");
+			return False
 		
 	def disconnectClient(self) -> bool:
-		pass
+		if self.mqttClient.is_connected():
+			self.mqttClient.loop_stop()
+			self.mqttClient.disconnect()
 		
 	def onConnect(self, client, userdata, flags, rc):
-		pass
+		logging.info("MQTT Python Client onConnect(Result code =" + str(rc) + ")")
 		
 	def onDisconnect(self, client, userdata, rc):
-		pass
+		logging.info("MQTT Python Client onDisconnect(Result code =" + str(rc) + ")")
 		
 	def onMessage(self, client, userdata, msg):
-		pass
+		logging.info("MQTT Python Client onMessage(msg=" + msg.payload.decode("utf-8") + ")")
 			
 	def onPublish(self, client, userdata, mid):
-		pass
+		logging.info("MQTT Python Client onPublish(mid=" + str(mid) + ")")
 	
 	def onSubscribe(self, client, userdata, mid, granted_qos):
-		pass
+		logging.info("MQTT Python Client onSubscribe(mid=" + str(mid) + ")")
 	
 	def onActuatorCommandMessage(self, client, userdata, msg):
 		"""
@@ -76,13 +107,36 @@ class MqttClientConnector(IPubSubClient):
 		pass
 	
 	def publishMessage(self, resource: ResourceNameEnum = None, msg: str = None, qos: int = ConfigConst.DEFAULT_QOS):
-		pass
+		if qos < 0 or qos > 2:
+			qos = ConfigConst.DEFAULT_QOS
+		
+		if resource:
+			msgInfo = self.mqttClient.publish(topic = resource.value, payload = msg, qos = qos)
+			# this will block and wait for the publish to complete
+			msgInfo.wait_for_publish()
+			return True
+		
+		return False
 	
 	def subscribeToTopic(self, resource: ResourceNameEnum = None, callback = None, qos: int = ConfigConst.DEFAULT_QOS):
-		pass
+		if qos < 0 or qos > 2:
+			qos = ConfigConst.DEFAULT_QOS
+		
+		if resource:
+			logging.info("Subscribing to topic %s", resource.value)
+			self.mqttClient.subscribe(resource.value, qos)
+			return True
+		
+		return False
 	
 	def unsubscribeFromTopic(self, resource: ResourceNameEnum = None):
-		pass
+		if resource:
+			logging.info("Unsubscribing from topic %s", resource.value)
+			self.mqttClient.unsubscribe(resource.value)
+			return True
+		
+		return False
 
 	def setDataMessageListener(self, listener: IDataMessageListener = None) -> bool:
-		pass
+		if listener:
+			self.dataMsgListener = listener
