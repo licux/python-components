@@ -52,6 +52,10 @@ class DeviceDataManager(IDataMessageListener):
 		self.mqttClient = None
 		if enableMqttClinet:
 			self.mqttClient = MqttClientConnector()
+		enableCoapClient = self.configUtil.getBoolean(section = ConfigConst.CONSTRAINED_DEVICE, key = ConfigConst.ENABLE_COAP_CLIENT_KEY)
+		self.coapClient = None
+		if enableCoapClient:
+			self.coapClient = CoapClientConnector()
 		
 	def getLatestActuatorDataResponseFromCache(self, name: str = None) -> ActuatorData:
 		"""
